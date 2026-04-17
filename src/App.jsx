@@ -26,6 +26,12 @@ function App() {
   const [isProcessing, setIsProcessing] = useState(false);
   const workerRef = useRef(null);
 
+  // Hidden Input Refs for Mobile Styling
+  const mainFileInputRef = useRef(null);
+  const mergeInputRef = useRef(null);
+  const protectInputRef = useRef(null);
+  const signatureInputRef = useRef(null);
+
   const [mergeFiles, setMergeFiles] = useState([]);
   const [activeFile, setActiveFile] = useState(null); 
   const [documentPages, setDocumentPages] = useState([]); 
@@ -174,18 +180,31 @@ function App() {
     }
   }, [activeTab, activeFile, signStep, documentPages]);
 
-  const startDrawing = ({ nativeEvent }) => {
+  // Mobile-Optimized Coordinate Handler
+  const getCoordinates = (e) => {
+    if (!canvasRef.current) return { x: 0, y: 0 };
+    const rect = canvasRef.current.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: (clientX - rect.left),
+      y: (clientY - rect.top)
+    };
+  };
+
+  const startDrawing = (e) => {
     if (!contextRef.current) return;
-    const { offsetX, offsetY } = nativeEvent;
+    if (e.type === 'touchstart') e.preventDefault(); // Stop mobile scroll
+    const { x, y } = getCoordinates(e.nativeEvent || e);
     contextRef.current.beginPath();
-    contextRef.current.moveTo(offsetX, offsetY);
+    contextRef.current.moveTo(x, y);
     setIsDrawing(true);
   };
 
-  const draw = ({ nativeEvent }) => {
+  const draw = (e) => {
     if (!isDrawing || !contextRef.current) return;
-    const { offsetX, offsetY } = nativeEvent;
-    contextRef.current.lineTo(offsetX, offsetY);
+    const { x, y } = getCoordinates(e.nativeEvent || e);
+    contextRef.current.lineTo(x, y);
     contextRef.current.stroke();
   };
 
@@ -312,7 +331,7 @@ function App() {
 
   return (
     <div 
-      className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center p-6"
+      className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center p-4 sm:p-6 overflow-x-hidden"
       onDragEnter={handleDrag}
     >
       {/* GLOBAL DRAG OVERLAY */}
@@ -372,7 +391,7 @@ function App() {
       </div>
 
       {/* MAIN CARD */}
-      <div className="max-w-5xl w-full bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-800 p-8">
+      <div className="max-w-5xl w-full bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-800 p-4 sm:p-8">
         <h1 className="text-4xl font-black uppercase tracking-tighter italic text-zinc-100 mb-2 tracking-tight capitalize">
           {activeTab.replace('-', ' ')} <span className="text-red-800 ml-2">PDFs.</span>
         </h1>
@@ -380,8 +399,24 @@ function App() {
 
         {activeTab === 'merge' && ( 
            <div className="max-w-xl mx-auto text-center">
-             <div className="border-2 border-dashed border-zinc-800 rounded-xl p-12 flex flex-col items-center justify-center mb-8 bg-zinc-950 hover:border-red-900/40 transition-colors group">
-               <input type="file" multiple accept="application/pdf" onChange={(e) => setMergeFiles(Array.from(e.target.files))} className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-6 file:rounded-full file:border file:border-red-900/30 file:text-sm file:font-bold file:bg-red-900/20 file:text-red-500 hover:file:bg-red-900/40 cursor-pointer" />
+             <div className="border-2 border-dashed border-zinc-800 rounded-xl p-8 sm:p-12 flex flex-col items-center justify-center mb-8 bg-zinc-950 hover:border-red-900/40 transition-colors group">
+               <input 
+                 type="file" 
+                 ref={mergeInputRef}
+                 multiple 
+                 accept="application/pdf" 
+                 onChange={(e) => setMergeFiles(Array.from(e.target.files))} 
+                 className="hidden" 
+               />
+               <button 
+                 onClick={() => mergeInputRef.current.click()}
+                 className="bg-red-900/20 text-red-500 border border-red-900/30 px-8 py-3 rounded-full font-bold uppercase text-xs tracking-widest hover:bg-red-900/40 transition-all mb-4 w-full sm:w-auto"
+               >
+                 Choose Files
+               </button>
+               <p className="text-[10px] text-zinc-500 font-mono uppercase truncate max-w-full px-4">
+                 {mergeFiles.length > 0 ? `${mergeFiles.length} Binaries Staged` : "System Idle: No binary detected"}
+               </p>
              </div>
              <button onClick={handleMerge} disabled={isProcessing || mergeFiles.length < 2} className={`w-full py-4 px-6 rounded-xl font-bold text-zinc-100 shadow-lg shadow-red-900/20 transition-all ${isProcessing || mergeFiles.length < 2 ? 'bg-zinc-800 text-zinc-600 border border-zinc-700 cursor-not-allowed' : 'bg-red-800 hover:bg-red-900 border border-red-700/50'}`}>
                {isProcessing ? 'Merging Core...' : 'Merge Documents'}
@@ -391,8 +426,23 @@ function App() {
 
         {activeTab === 'protect' && ( 
            <div className="max-w-xl mx-auto">
-             <div className="border-2 border-dashed border-zinc-800 rounded-xl p-12 flex flex-col items-center justify-center mb-8 bg-zinc-950 hover:border-red-900/40 transition-colors">
-               <input type="file" accept="application/pdf" onChange={(e) => setActiveFile(e.target.files[0])} className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-6 file:rounded-full file:border file:border-red-900/30 file:font-bold file:bg-red-900/20 file:text-red-500 hover:file:bg-red-900/40 cursor-pointer" />
+             <div className="border-2 border-dashed border-zinc-800 rounded-xl p-8 sm:p-12 flex flex-col items-center justify-center mb-8 bg-zinc-950 hover:border-red-900/40 transition-colors">
+               <input 
+                 type="file" 
+                 ref={protectInputRef}
+                 accept="application/pdf" 
+                 onChange={(e) => setActiveFile(e.target.files[0])} 
+                 className="hidden" 
+               />
+               <button 
+                 onClick={() => protectInputRef.current.click()}
+                 className="bg-red-900/20 text-red-500 border border-red-900/30 px-8 py-3 rounded-full font-bold uppercase text-xs tracking-widest hover:bg-red-900/40 transition-all mb-4 w-full sm:w-auto"
+               >
+                 Choose File
+               </button>
+               <p className="text-[10px] text-zinc-500 font-mono uppercase truncate max-w-full px-4 text-center">
+                 {activeFile ? activeFile.name : "System Idle: No binary detected"}
+               </p>
              </div>
              {activeFile && (
                <div className="mb-6">
@@ -407,9 +457,25 @@ function App() {
         )}
 
         {['extract', 'reorder', 'rotate', 'sign', 'watermark', 'page-numbers'].includes(activeTab) && (
-          <div>
-            <div className={`border-2 border-dashed border-zinc-800 rounded-xl p-12 flex flex-col items-center justify-center mb-8 bg-zinc-950 hover:border-red-900/40 transition-colors max-w-xl mx-auto ${activeTab === 'sign' && signStep === 'place' ? 'hidden' : ''}`}>
-              <input key={activeTab} type="file" accept="application/pdf" onChange={handleVisualFileChange} className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-6 file:rounded-full file:border file:border-red-900/30 file:font-bold file:bg-red-900/20 file:text-red-500 hover:file:bg-red-900/40 cursor-pointer" />
+          <div className="w-full overflow-hidden">
+            <div className={`border-2 border-dashed border-zinc-800 rounded-xl p-8 sm:p-12 flex flex-col items-center justify-center mb-8 bg-zinc-950 hover:border-red-900/40 transition-colors max-w-xl mx-auto ${activeTab === 'sign' && signStep === 'place' ? 'hidden' : ''}`}>
+              <input 
+                key={activeTab} 
+                ref={mainFileInputRef}
+                type="file" 
+                accept="application/pdf" 
+                onChange={handleVisualFileChange} 
+                className="hidden" 
+              />
+               <button 
+                 onClick={() => mainFileInputRef.current.click()}
+                 className="bg-red-900/20 text-red-500 border border-red-900/30 px-8 py-3 rounded-full font-bold uppercase text-xs tracking-widest hover:bg-red-900/40 transition-all mb-4 w-full sm:w-auto"
+               >
+                 Choose File
+               </button>
+               <p className="text-[10px] text-zinc-500 font-mono uppercase truncate max-w-full px-4 text-center">
+                 {activeFile ? activeFile.name : "System Idle: No binary detected"}
+               </p>
             </div>
 
             {documentPages.length > 0 && (
@@ -419,14 +485,37 @@ function App() {
                     {signStep === 'draw' && (
                       <div className="max-w-xl mx-auto mb-6">
                          <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-3">Signature Matrix</label>
-                         <canvas ref={canvasRef} onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseLeave={stopDrawing} className="w-full h-48 bg-white border-2 border-zinc-800 rounded-xl cursor-crosshair shadow-inner" style={{ touchAction: 'none' }} />
+                         <canvas 
+                            ref={canvasRef} 
+                            onMouseDown={startDrawing} 
+                            onMouseMove={draw} 
+                            onMouseUp={stopDrawing} 
+                            onMouseLeave={stopDrawing} 
+                            onTouchStart={startDrawing}
+                            onTouchMove={draw}
+                            onTouchEnd={stopDrawing}
+                            className="w-full h-48 bg-white border-2 border-zinc-800 rounded-xl cursor-crosshair shadow-inner" 
+                            style={{ touchAction: 'none' }} 
+                         />
                          <div className="flex justify-between mt-3 px-1">
                            <button onClick={clearSignature} className="text-xs font-bold text-zinc-500 uppercase tracking-widest hover:text-red-500 transition-colors">Clear Pad</button>
                            <button onClick={saveSignature} className="text-xs font-bold text-red-500 uppercase tracking-widest hover:text-red-400 transition-colors">Confirm Capture</button>
                          </div>
                          <div className="mt-8 pt-8 border-t border-zinc-800">
                            <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-3">Legacy Input (Image Upload)</label>
-                           <input type="file" accept="image/*" onChange={handleUploadSignature} className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-6 file:rounded-full file:border file:border-zinc-700 file:bg-zinc-800 file:text-zinc-300 hover:file:bg-zinc-700 cursor-pointer" />
+                           <input 
+                             type="file" 
+                             ref={signatureInputRef}
+                             accept="image/*" 
+                             onChange={handleUploadSignature} 
+                             className="hidden" 
+                           />
+                           <button 
+                             onClick={() => signatureInputRef.current.click()}
+                             className="w-full bg-zinc-800 text-zinc-300 border border-zinc-700 py-3 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-zinc-700 transition-all"
+                           >
+                             Upload Signature Image
+                           </button>
                          </div>
                       </div>
                     )}
@@ -458,9 +547,10 @@ function App() {
                     {signStep === 'place' && (
                       <div className="flex flex-col items-center mb-8">
                         <p className="text-zinc-500 uppercase text-[10px] font-black tracking-widest mb-6">Editing Workspace / Page {targetPage + 1}</p>
-                        <div className="p-4 bg-zinc-950 rounded-2xl border border-zinc-800 overflow-x-auto w-full flex justify-center shadow-inner" onClick={() => setActiveSignatureId(null)}>
-                          <div className="relative bg-white shadow-2xl border border-zinc-800" style={{ width: documentPages[targetPage]?.originalWidth, height: documentPages[targetPage]?.originalHeight }}>
-                            <img src={documentPages[targetPage]?.url} className="w-full h-full pointer-events-none" alt="Document Background" />
+                        {/* MOBILE FIX: Added overflow-x-auto and removed flex-justify-center to prevent stretching */}
+                        <div className="p-2 sm:p-4 bg-zinc-950 rounded-2xl border border-zinc-800 overflow-x-auto w-full shadow-inner" onClick={() => setActiveSignatureId(null)}>
+                          <div className="relative bg-white shadow-2xl border border-zinc-800 mx-auto" style={{ width: documentPages[targetPage]?.originalWidth, height: documentPages[targetPage]?.originalHeight, minWidth: documentPages[targetPage]?.originalWidth }}>
+                            <img src={documentPages[targetPage]?.url} className="w-full h-auto pointer-events-none" alt="Document Background" />
                             {placedSignatures.filter(s => s.pageIndex === targetPage).map(sig => (
                               <Rnd key={sig.id} bounds="parent" lockAspectRatio={true} position={{ x: sig.x, y: sig.y }} size={{ width: sig.width, height: sig.height }} onDragStart={() => setActiveSignatureId(sig.id)} onDragStop={(e, d) => setPlacedSignatures(prev => prev.map(s => s.id === sig.id ? { ...s, x: d.x, y: d.y } : s))} onResizeStart={() => setActiveSignatureId(sig.id)} onResizeStop={(e, dir, ref, delta, pos) => setPlacedSignatures(prev => prev.map(s => s.id === sig.id ? { ...s, width: parseInt(ref.style.width), height: parseInt(ref.style.height), ...pos } : s))} onClick={(e) => { e.stopPropagation(); setActiveSignatureId(sig.id); }} className={`border-2 group cursor-move ${activeSignatureId === sig.id ? 'border-red-800 border-solid z-50' : 'border-transparent hover:border-zinc-400 border-dashed z-10'}`}>
                                 <img src={sig.image} className="w-full h-full pointer-events-none" alt="Your Signature" />
