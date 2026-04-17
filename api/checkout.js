@@ -1,8 +1,10 @@
 import DodoPayments from 'dodopayments';
 
+const isLive = process.env.DODO_PAYMENTS_ENV === 'live_mode';
+
 const client = new DodoPayments({
   bearerToken: process.env.DODO_PAYMENTS_API_KEY,
-  environment: process.env.DODO_PAYMENTS_ENV || 'test_mode', 
+  environment: isLive ? 'live_mode' : 'test_mode',
 });
 
 export default async function handler(req, res) {
@@ -11,8 +13,12 @@ export default async function handler(req, res) {
     const host = req.headers['x-forwarded-host'] || req.headers.host;
     const dynamicReturnUrl = `${protocol}://${host}/success`;
 
+    const targetProductId = isLive 
+      ? 'pdt_0NctJmE1VBlXTsIoD8Sue' 
+      : 'pdt_0NctNNHsYBD5I2J03QqEA';
+
     const session = await client.checkoutSessions.create({
-      product_cart: [{ product_id: 'pdt_0NctNNHsYBD5I2J03QqEA', quantity: 1 }], 
+      product_cart: [{ product_id: targetProductId, quantity: 1 }], 
       customer: { email: req.body.email, name: req.body.name },
       return_url: dynamicReturnUrl,
     });
