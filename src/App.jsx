@@ -8,6 +8,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStr
 import { CSS } from '@dnd-kit/utilities';
 import { Rnd } from 'react-rnd'; 
 import { Analytics } from '@vercel/analytics/react';
+import { DodoPayments } from 'dodopayments-checkout';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
@@ -27,7 +28,7 @@ function App() {
   const [isProcessing, setIsProcessing] = useState(false);
   const workerRef = useRef(null);
 
-  // Hidden Input Refs for Mobile Styling
+  //Mobile Styling
   const mainFileInputRef = useRef(null);
   const mergeInputRef = useRef(null);
   const protectInputRef = useRef(null);
@@ -148,6 +149,19 @@ function App() {
   );
 
   useEffect(() => {
+    DodoPayments.Initialize({
+      mode: import.meta.env.VITE_DODO_PAYMENTS_ENV || "test", 
+      displayType: "overlay", 
+      onEvent: (event) => {
+        console.log("Dodo Event:", event.event_type);
+        if (event.event_type === "checkout.closed") {
+          // Handle post-checkout cleanup if needed
+        }
+      },
+    });
+  }, []);
+
+  useEffect(() => {
     workerRef.current = new MyPdfWorker();
     workerRef.current.onmessage = (e) => {
       const { status, data, error } = e.data;
@@ -181,6 +195,32 @@ function App() {
     }
   }, [activeTab, activeFile, signStep, documentPages]);
 
+  const handleSupportClick = async () => {
+    setIsProcessing(true);
+    
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'supporter@example.com', name: 'Supporter' }),
+      });
+
+      const session = await response.json();
+      
+      if (session.url) {
+        DodoPayments.Checkout.open({
+          checkoutUrl: session.url 
+        });
+      } else {
+        alert("Checkout failed to initialize.");
+      }
+    } catch (error) {
+      console.error("Dodo Error:", error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   // Mobile-Optimized Coordinate Handler
   const getCoordinates = (e) => {
     if (!canvasRef.current) return { x: 0, y: 0 };
@@ -195,7 +235,7 @@ function App() {
 
   const startDrawing = (e) => {
     if (!contextRef.current) return;
-    if (e.type === 'touchstart') e.preventDefault(); // Stop mobile scroll
+    if (e.type === 'touchstart') e.preventDefault();  
     const { x, y } = getCoordinates(e.nativeEvent || e);
     contextRef.current.beginPath();
     contextRef.current.moveTo(x, y);
@@ -354,7 +394,7 @@ function App() {
           </div>
         </div>
       )}
-      {/* --- GLOBAL HEADER --- */}
+      {/* GLOBAL HEADER */}
       <div className="w-full max-w-5xl flex flex-col sm:flex-row justify-between items-baseline mb-8 px-2 border-b border-zinc-900 pb-6">
         <div>
           <h1 className="text-5xl font-black tracking-tighter text-zinc-100 flex items-center gap-1">
@@ -373,7 +413,7 @@ function App() {
             Status: Local Engine Active
           </span>
           <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest">
-            Build: 04.2026 // Charcoal Edition
+            Build: 04.2026
           </span>
         </div>
       </div>
@@ -548,7 +588,6 @@ function App() {
                     {signStep === 'place' && (
                       <div className="flex flex-col items-center mb-8">
                         <p className="text-zinc-500 uppercase text-[10px] font-black tracking-widest mb-6">Editing Workspace / Page {targetPage + 1}</p>
-                        {/* MOBILE FIX: Added overflow-x-auto and removed flex-justify-center to prevent stretching */}
                         <div className="p-2 sm:p-4 bg-zinc-950 rounded-2xl border border-zinc-800 overflow-x-auto w-full shadow-inner" onClick={() => setActiveSignatureId(null)}>
                           <div className="relative bg-white shadow-2xl border border-zinc-800 mx-auto" style={{ width: documentPages[targetPage]?.originalWidth, height: documentPages[targetPage]?.originalHeight, minWidth: documentPages[targetPage]?.originalWidth }}>
                             <img src={documentPages[targetPage]?.url} className="w-full h-auto pointer-events-none" alt="Document Background" />
@@ -653,6 +692,25 @@ function App() {
             )}
           </div>
         )}
+      </div>
+      {/* DODO PAYMENTS SUPPORT SECTION */}
+      <div className="mt-12 py-10 border-t border-zinc-900 w-full max-w-xl text-center">
+        <h3 className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.5em] mb-4">
+          Engine Sustenance
+        </h3>
+        <p className="text-zinc-500 text-sm mb-8 px-6 leading-relaxed font-mono italic">
+          v1.1 is provided as-is via local execution. 
+          Support the development of v1.2 with a Supporter Key.
+        </p>
+        <button 
+          onClick={handleSupportClick}
+          className="bg-zinc-950 border-2 border-red-900/40 text-red-600 px-10 py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-red-900/10 hover:border-red-600 transition-all shadow-2xl active:scale-95"
+        >
+          Get Supporter Key
+        </button>
+        <p className="mt-4 text-[9px] text-zinc-700 uppercase tracking-widest">
+          Secure Bank Transfer Processing // Powered by Dodo
+        </p>
       </div>
       <Analytics />
     </div>
