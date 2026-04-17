@@ -6,13 +6,13 @@ const Success = () => {
   const [searchParams] = useSearchParams();
   const paymentId = searchParams.get('payment_id');
   
-  // Default to succeeded for local bypass testing
+
   const status = searchParams.get('status') || 'succeeded'; 
   
-  // Evaluate the handshake outcome
+
   const isSuccess = status === 'succeeded';
 
-  // Only start the countdown if it was a success
+
   const [countdown, setCountdown] = useState(isSuccess ? 10 : 0);
   const [copied, setCopied] = useState(false);
 
@@ -24,9 +24,9 @@ const Success = () => {
     }
   };
 
-  // Auto-redirect logic
+
   useEffect(() => {
-    if (!isSuccess) return; // Halt timer on failure
+    if (!isSuccess) return;
 
     const timer = setInterval(() => {
       setCountdown((prev) => (prev > 0 ? prev - 1 : 0));

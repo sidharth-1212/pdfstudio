@@ -54,6 +54,8 @@ function App() {
   const contextRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
+  const dodoInitialized = useRef(false);
+
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -149,19 +151,6 @@ function App() {
   );
 
   useEffect(() => {
-    DodoPayments.Initialize({
-      mode: import.meta.env.VITE_DODO_PAYMENTS_ENV || "test", 
-      displayType: "overlay", 
-      onEvent: (event) => {
-        console.log("Dodo Event:", event.event_type);
-        if (event.event_type === "checkout.closed") {
-          // Handle post-checkout cleanup if needed
-        }
-      },
-    });
-  }, []);
-
-  useEffect(() => {
     workerRef.current = new MyPdfWorker();
     workerRef.current.onmessage = (e) => {
       const { status, data, error } = e.data;
@@ -208,14 +197,14 @@ function App() {
       const session = await response.json();
       
       if (session.url) {
-        DodoPayments.Checkout.open({
-          checkoutUrl: session.url 
-        });
+        window.open(session.url, '_blank', 'noopener,noreferrer');
       } else {
-        alert("Checkout failed to initialize.");
+        console.error("Backend Error Details:", session.error);
+        alert(`Checkout failed: ${session.error || 'Unknown server error'}`);
       }
     } catch (error) {
-      console.error("Dodo Error:", error);
+      console.error("Network/Fetch Error:", error);
+      alert("Failed to connect to the payment server.");
     } finally {
       setIsProcessing(false);
     }
