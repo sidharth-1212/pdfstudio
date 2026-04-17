@@ -389,7 +389,7 @@ function App() {
           <h1 className="text-5xl font-black tracking-tighter text-zinc-100 flex items-center gap-1">
             PDF<span className="text-red-800">STUDIO</span>
             <span className="text-[10px] bg-red-900/20 text-red-500 border border-red-900/30 px-2 py-0.5 rounded-full ml-3 uppercase tracking-tighter font-bold italic shadow-sm">
-              v1.0
+              v1.2
             </span>
           </h1>
           <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.4em] mt-1 pl-1">
@@ -399,7 +399,7 @@ function App() {
         
         <div className="hidden sm:flex flex-col items-end opacity-40">
           <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest">
-            Status: Local Engine Active
+            Status: Portfolio Project (Live)
           </span>
           <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest">
             Build: 04.2026
@@ -425,7 +425,7 @@ function App() {
         <h1 className="text-4xl font-black uppercase tracking-tighter italic text-zinc-100 mb-2 tracking-tight capitalize">
           {activeTab.replace('-', ' ')} <span className="text-red-800 ml-2">PDFs.</span>
         </h1>
-        <p className="text-zinc-500 uppercase text-xs tracking-widest font-bold mb-8">Precision PDF Engineering / Local Processing Only</p>
+        <p className="text-zinc-500 uppercase text-xs tracking-widest font-bold mb-8">Precision PDF Editing / Client-Side Only</p>
 
         {activeTab === 'merge' && ( 
            <div className="max-w-xl mx-auto text-center">
@@ -445,11 +445,11 @@ function App() {
                  Choose Files
                </button>
                <p className="text-[10px] text-zinc-500 font-mono uppercase truncate max-w-full px-4">
-                 {mergeFiles.length > 0 ? `${mergeFiles.length} Binaries Staged` : "System Idle: No binary detected"}
+                 {mergeFiles.length > 0 ? `${mergeFiles.length} Files Staged` : "System Idle: No file detected"}
                </p>
              </div>
              <button onClick={handleMerge} disabled={isProcessing || mergeFiles.length < 2} className={`w-full py-4 px-6 rounded-xl font-bold text-zinc-100 shadow-lg shadow-red-900/20 transition-all ${isProcessing || mergeFiles.length < 2 ? 'bg-zinc-800 text-zinc-600 border border-zinc-700 cursor-not-allowed' : 'bg-red-800 hover:bg-red-900 border border-red-700/50'}`}>
-               {isProcessing ? 'Merging Core...' : 'Merge Documents'}
+               {isProcessing ? 'Merging Files...' : 'Merge Documents'}
              </button>
            </div>
         )}
@@ -471,7 +471,7 @@ function App() {
                  Choose File
                </button>
                <p className="text-[10px] text-zinc-500 font-mono uppercase truncate max-w-full px-4 text-center">
-                 {activeFile ? activeFile.name : "System Idle: No binary detected"}
+                 {activeFile ? activeFile.name : "System Idle: No file detected"}
                </p>
              </div>
              {activeFile && (
@@ -504,7 +504,7 @@ function App() {
                  Choose File
                </button>
                <p className="text-[10px] text-zinc-500 font-mono uppercase truncate max-w-full px-4 text-center">
-                 {activeFile ? activeFile.name : "System Idle: No binary detected"}
+                 {activeFile ? activeFile.name : "System Idle: No file detected"}
                </p>
             </div>
 
@@ -514,7 +514,7 @@ function App() {
                   <div className="w-full">
                     {signStep === 'draw' && (
                       <div className="max-w-xl mx-auto mb-6">
-                         <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-3">Signature Matrix</label>
+                         <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-3">Signature Pad</label>
                          <canvas 
                             ref={canvasRef} 
                             onMouseDown={startDrawing} 
@@ -529,10 +529,10 @@ function App() {
                          />
                          <div className="flex justify-between mt-3 px-1">
                            <button onClick={clearSignature} className="text-xs font-bold text-zinc-500 uppercase tracking-widest hover:text-red-500 transition-colors">Clear Pad</button>
-                           <button onClick={saveSignature} className="text-xs font-bold text-red-500 uppercase tracking-widest hover:text-red-400 transition-colors">Confirm Capture</button>
+                           <button onClick={saveSignature} className="text-xs font-bold text-red-500 uppercase tracking-widest hover:text-red-400 transition-colors">Confirm Sign</button>
                          </div>
                          <div className="mt-8 pt-8 border-t border-zinc-800">
-                           <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-3">Legacy Input (Image Upload)</label>
+                           <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-3">Input (Image Upload)</label>
                            <input 
                              type="file" 
                              ref={signatureInputRef}
@@ -553,9 +553,9 @@ function App() {
                     {signStep === 'select-page' && (
                       <div className="mb-8">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
-                          <p className="font-bold text-zinc-400 uppercase text-xs tracking-widest">Target Selection Grid</p>
+                          <p className="font-bold text-zinc-400 uppercase text-xs tracking-widest">Page Selection Grid</p>
                           <div className="flex gap-2 mt-4 sm:mt-0">
-                            <button onClick={() => setSignStep('draw')} className="py-2 px-4 rounded-lg font-bold text-zinc-300 bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 transition-all text-xs uppercase tracking-tighter">✏️ Draw New</button>
+                            <button onClick={() => setSignStep('draw')} className="py-2 px-4 rounded-lg font-bold text-zinc-300 bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 transition-all text-xs uppercase tracking-tighter">Draw New</button>
                             <button onClick={handleSign} disabled={isProcessing || placedSignatures.length === 0} className={`py-2 px-5 rounded-lg font-bold text-zinc-100 shadow-md transition-all text-xs uppercase tracking-tighter ${isProcessing || placedSignatures.length === 0 ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-zinc-700' : 'bg-red-800 hover:bg-red-900 border border-red-700/50'}`}>{isProcessing ? 'Processing...' : 'Commit to Document'}</button>
                           </div>
                         </div>
@@ -589,8 +589,8 @@ function App() {
                           </div>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full max-w-2xl px-4">
-                          <button onClick={() => { if (!signatureImage) return; const newId = Date.now(); setPlacedSignatures(prev => [...prev, { id: newId, pageIndex: targetPage, image: signatureImage, x: 50, y: 50, width: 200, height: 100 }]); setActiveSignatureId(newId); }} className="flex-1 py-4 px-4 rounded-xl font-bold text-red-500 bg-red-900/10 border border-red-900/30 hover:bg-red-900/20 transition-all uppercase text-xs tracking-widest">+ Stamp Instance</button>
-                          <button onClick={() => setSignStep('draw')} className="flex-1 py-4 px-4 rounded-xl font-bold text-zinc-300 bg-zinc-800 border border-zinc-700 hover:bg-zinc-750 transition-all uppercase text-xs tracking-widest">✏️ Redraw Sign</button>
+                          <button onClick={() => { if (!signatureImage) return; const newId = Date.now(); setPlacedSignatures(prev => [...prev, { id: newId, pageIndex: targetPage, image: signatureImage, x: 50, y: 50, width: 200, height: 100 }]); setActiveSignatureId(newId); }} className="flex-1 py-4 px-4 rounded-xl font-bold text-red-500 bg-red-900/10 border border-red-900/30 hover:bg-red-900/20 transition-all uppercase text-xs tracking-widest">Add Sign Copy</button>
+                          <button onClick={() => setSignStep('draw')} className="flex-1 py-4 px-4 rounded-xl font-bold text-zinc-300 bg-zinc-800 border border-zinc-700 hover:bg-zinc-750 transition-all uppercase text-xs tracking-widest">Redraw Sign</button>
                           <button onClick={() => { setTargetPage(null); setSignStep('select-page'); }} className="flex-1 py-4 px-4 rounded-xl font-bold text-zinc-400 bg-zinc-900 border border-zinc-800 hover:bg-zinc-850 transition-all uppercase text-xs tracking-widest">Back to Grid</button>
                         </div>
                       </div>
@@ -607,7 +607,7 @@ function App() {
                       </div>
                     </SortableContext>
                     <button onClick={handleReorder} disabled={isProcessing} className={`w-full max-w-md mx-auto block py-4 px-6 rounded-xl font-bold text-zinc-100 shadow-lg shadow-red-900/20 transition-all ${isProcessing ? 'bg-zinc-800 text-zinc-600 border border-zinc-700 cursor-not-allowed' : 'bg-red-800 hover:bg-red-900 border border-red-700/50'}`}>
-                      {isProcessing ? 'Processing Sequence...' : 'Bake New Sequence'}
+                      {isProcessing ? 'Processing Sequence...' : 'Reorder into New Sequence'}
                     </button>
                   </DndContext>
                 )}
@@ -636,7 +636,7 @@ function App() {
                           <button onClick={() => handleVisualRotate('right', true)} className="px-4 py-2 rounded-lg font-bold text-xs uppercase bg-zinc-800 text-red-500 hover:bg-zinc-700 border border-zinc-700 shadow-sm transition-colors ml-auto">Rotate All ↻</button>
                         </div>
                         <button onClick={handleApplyRotations} disabled={isProcessing} className={`w-full block py-4 px-6 rounded-xl font-bold text-zinc-100 shadow-lg shadow-red-900/20 transition-all ${isProcessing ? 'bg-zinc-800 text-zinc-600 border border-zinc-700 cursor-not-allowed' : 'bg-red-800 hover:bg-red-900 border border-red-700/50'}`}>
-                          {isProcessing ? 'Processing Binary...' : 'Finalize All Rotations'}
+                          {isProcessing ? 'Processing...' : 'Finalize All Rotations'}
                         </button>
                       </div>
                     )}
@@ -660,14 +660,14 @@ function App() {
                       disabled={isProcessing || !watermarkText.trim()} 
                       className={`w-full py-4 px-6 rounded-xl font-bold text-zinc-100 shadow-lg shadow-red-900/20 transition-all ${isProcessing || !watermarkText.trim() ? 'bg-zinc-800 text-zinc-600 border border-zinc-700 cursor-not-allowed' : 'bg-red-800 hover:bg-red-900 border border-red-700/50'}`}
                     >
-                      {isProcessing ? 'Stamping Matrix...' : 'Bake Watermark & Download'}
+                      {isProcessing ? 'Stamping Watermark...' : 'Set Watermark & Download'}
                     </button>
                   </div>
                 )}
 
                 {activeTab === 'page-numbers' && activeFile && (
                   <div className="max-w-xl mx-auto mb-8 text-center">
-                    <p className="text-zinc-500 mb-6 font-bold uppercase text-[10px] tracking-widest italic opacity-60">Linear pagination will be added to the footer of every page.</p>
+                    <p className="text-zinc-500 mb-6 font-bold uppercase text-[10px] tracking-widest italic opacity-60">Page numbers will be added to the footer of every page.</p>
                     <button 
                       onClick={handlePageNumbers} 
                       disabled={isProcessing} 
@@ -685,11 +685,10 @@ function App() {
       {/* DODO PAYMENTS SUPPORT SECTION */}
       <div className="mt-12 py-10 border-t border-zinc-900 w-full max-w-xl text-center">
         <h3 className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.5em] mb-4">
-          Engine Sustenance
+          Support My Journey
         </h3>
         <p className="text-zinc-500 text-sm mb-8 px-6 leading-relaxed font-mono italic">
-          v1.1 is provided as-is via local execution. 
-          Support the development of v1.2 with a Supporter Key.
+          I made this to be a performance-centric, local-first web app. It is a simple tool, yet it provides 80% of features that the vast majority of PDF users actually require. This workspace will remain free forever, for everyone. Donations are the fuel that allows me to sustain my work as a developer, giving me the freedom to continue building.
         </p>
         <button 
           onClick={handleSupportClick}
