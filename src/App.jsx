@@ -203,12 +203,24 @@ function PdfStudio() {
     workerRef.current.onmessage = (e) => {
       const { status, data, error } = e.data;
       setIsProcessing(false);
+      
       if (status === 'success') {
         const blob = new Blob([data], { type: 'application/pdf' });
         const url = URL.createObjectURL(blob);
+  
+        let baseName = "document";
+        
+        if (activeTab === 'merge' && mergeFiles.length > 0) {
+          baseName = mergeFiles[0].name.replace(/\.[^/.]+$/, "");
+        } else if (activeFile) {
+          baseName = activeFile.name.replace(/\.[^/.]+$/, "");
+        }
+
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${activeTab}-result.pdf`;
+
+        a.download = `${baseName}_${activeTab}_pdfstudio.pdf`;
+        
         a.click();
         URL.revokeObjectURL(url);
       } else {
@@ -216,7 +228,7 @@ function PdfStudio() {
       }
     };
     return () => workerRef.current?.terminate();
-  }, [activeTab]);
+  }, [activeTab, activeFile, mergeFiles]);
 
   useEffect(() => {
     if (activeTab === 'sign' && canvasRef.current && signStep === 'draw') {
@@ -479,13 +491,17 @@ function PdfStudio() {
            <div className="max-w-xl mx-auto text-center">
              <div className="border-2 border-dashed border-zinc-800 rounded-xl p-8 sm:p-12 flex flex-col items-center justify-center mb-8 bg-zinc-950 hover:border-red-900/40 transition-colors group">
                <input 
-                 type="file" 
-                 ref={mergeInputRef}
-                 multiple 
-                 accept="application/pdf" 
-                 onChange={(e) => setMergeFiles(Array.from(e.target.files))} 
-                 className="hidden" 
-               />
+                  type="file" 
+                  ref={mergeInputRef}
+                  multiple 
+                  accept="application/pdf" 
+                  onChange={(e) => {
+                    const newFiles = Array.from(e.target.files);
+                    setMergeFiles(prev => [...prev, ...newFiles]);
+                    e.target.value = null; 
+                  }} 
+                  className="hidden" 
+                />
                <button 
                  onClick={() => mergeInputRef.current.click()}
                  className="bg-red-900/20 text-red-500 border border-red-900/30 px-8 py-3 rounded-full font-bold uppercase text-xs tracking-widest hover:bg-red-900/40 transition-all mb-4 w-full sm:w-auto"
@@ -496,6 +512,39 @@ function PdfStudio() {
                  {mergeFiles.length > 0 ? `${mergeFiles.length} Files Staged` : "System Idle: No file detected"}
                </p>
              </div>
+
+             {mergeFiles.length > 0 && (
+                <div className="w-full mb-8 space-y-2">
+                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">
+                    Staged for Processing
+                  </p>
+                  <div className="grid gap-2">
+                    {mergeFiles.map((file, index) => (
+                      <div 
+                        key={`${file.name}-${index}`} 
+                        className="flex items-center justify-between bg-zinc-950 border border-zinc-800 p-3 rounded-xl group hover:border-red-900/40 transition-colors"
+                      >
+                        <div className="flex items-center gap-3 overflow-hidden">
+                          <span className="text-red-800 font-black text-xs px-2 italic">{index + 1}</span>
+                          <p className="text-xs font-mono text-zinc-300 truncate uppercase">
+                            {file.name}
+                          </p>
+                        </div>
+                        <button 
+                          onClick={() => setMergeFiles(prev => prev.filter((_, i) => i !== index))}
+                          className="text-zinc-600 hover:text-red-500 p-1 transition-colors"
+                          title="Remove from queue"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
              <button onClick={handleMerge} disabled={isProcessing || mergeFiles.length < 2} className={`w-full py-4 px-6 rounded-xl font-bold text-zinc-100 shadow-lg shadow-red-900/20 transition-all ${isProcessing || mergeFiles.length < 2 ? 'bg-zinc-800 text-zinc-600 border border-zinc-700 cursor-not-allowed' : 'bg-red-800 hover:bg-red-900 border border-red-700/50'}`}>
                {isProcessing ? 'Merging Files...' : 'Merge Documents'}
              </button>
