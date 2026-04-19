@@ -21,7 +21,7 @@ export default async function handler(req, res) {
 
     const session = await client.checkoutSessions.create({
       product_cart: [{ product_id: targetProductId, quantity: 1 }], 
-      customer: { email: req.body.email, name: req.body.name },
+      //customer: { email: req.body.email, name: req.body.name },
       return_url: dynamicReturnUrl,
     });
 
