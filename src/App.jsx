@@ -9,8 +9,23 @@ import { CSS } from '@dnd-kit/utilities';
 import { Rnd } from 'react-rnd'; 
 import { Analytics } from '@vercel/analytics/react';
 import { DodoPayments } from 'dodopayments-checkout';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useParams } from 'react-router-dom';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+
+function PdfEngineWrapper({ activeTab, handleTabChange, children }) {
+  const { tabId } = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // If the URL has a tabId (e.g., /merge), sync it to your app state
+    if (tabId && tabId !== activeTab) {
+      handleTabChange(tabId);
+    }
+  }, [tabId]);
+
+  return children;
+}
 
 function SortableThumbnail({ id, url, originalIndex }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
@@ -24,6 +39,22 @@ function SortableThumbnail({ id, url, originalIndex }) {
 }
 
 function App() {
+  return (
+    <>
+      <Routes>
+        <Route path="/:tabId" element={<PdfStudio />} />
+        <Route path="/" element={<PdfStudio />} />
+      </Routes>
+      <PdfStudio />
+      <Analytics />
+    </>
+  );
+}
+
+function PdfStudio() {
+  const { tabId } = useParams();
+  const navigate = useNavigate();
+
   const [activeTab, setActiveTab] = useState('reorder'); 
   const [isProcessing, setIsProcessing] = useState(false);
   const workerRef = useRef(null);
@@ -131,7 +162,25 @@ function App() {
   };
 
   const handleTabChange = (tab) => {
-    setActiveTab(tab);
+    navigate(`/${tab}`);
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  useEffect(() => {
+    // 1. If the URL is just '/', send them to 'reorder'
+    if (!tabId) {
+      navigate('/reorder', { replace: true });
+      return;
+    }
+
+    // 2. Sync activeTab state to the URL
+    setActiveTab(tabId);
+
+    // 3. YOUR CLEANUP LOGIC: Fires automatically on URL change
     setMergeFiles([]);
     setActiveFile(null);
     setDocumentPages([]);
@@ -143,12 +192,11 @@ function App() {
     setPendingDrop(false);
     setPlacedSignatures([]); 
     setActiveSignatureId(null);
-  };
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  );
+    // Scroll to top for a fresh view
+    window.scrollTo(0, 0);
+
+  }, [tabId, navigate]); // Triggers every time the URL suffix changes
 
   useEffect(() => {
     workerRef.current = new MyPdfWorker();
@@ -191,7 +239,7 @@ function App() {
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'supporter@example.com', name: 'Supporter' }),
+        body: JSON.stringify({ email: '', name: '' }),
       });
 
       const session = await response.json();
@@ -700,7 +748,6 @@ function App() {
           Secure Bank Transfer Processing // Powered by Dodo
         </p>
       </div>
-      <Analytics />
     </div>
   );
 }
