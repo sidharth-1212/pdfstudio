@@ -13,20 +13,6 @@ import { BrowserRouter as Router, Routes, Route, useNavigate, useParams } from '
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
-function PdfEngineWrapper({ activeTab, handleTabChange, children }) {
-  const { tabId } = useParams();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // If the URL has a tabId (e.g., /merge), sync it to your app state
-    if (tabId && tabId !== activeTab) {
-      handleTabChange(tabId);
-    }
-  }, [tabId]);
-
-  return children;
-}
-
 function SortableThumbnail({ id, url, originalIndex }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
   const style = { transform: CSS.Transform.toString(transform), transition };
