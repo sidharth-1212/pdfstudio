@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
 import MyPdfWorker from './workers/pdfWorker.js?worker'; 
-
+import { track } from '@vercel/analytics';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -338,38 +338,45 @@ function PdfStudio() {
     const pageRotations = {};
     documentPages.forEach(p => { if (p.rotation % 360 !== 0) pageRotations[p.index] = p.rotation; });
     if (Object.keys(pageRotations).length === 0) return;
+    track('Feature: Rotate');
     setIsProcessing(true);
     workerRef.current.postMessage({ action: 'rotate', file: await activeFile.arrayBuffer(), pageRotations });
   };
 
   const handleMerge = async () => {
+    track('Feature: Merge', { fileCount: mergeFiles.length });
     setIsProcessing(true);
     workerRef.current.postMessage({ action: 'merge', files: await Promise.all(mergeFiles.map(f => f.arrayBuffer())) });
   };
 
   const handleExtract = async () => {
+    track('Feature: Extract');
     setIsProcessing(true);
     workerRef.current.postMessage({ action: 'extract', file: await activeFile.arrayBuffer(), selectedIndices: documentPages.filter(p => p.selected).map(p => p.index) });
   };
 
   const handleReorder = async () => {
+    track('Feature: Reorder');
     setIsProcessing(true);
     workerRef.current.postMessage({ action: 'reorder', file: await activeFile.arrayBuffer(), selectedIndices: documentPages.map(p => p.index) });
   };
 
   const handleProtect = async () => {
     if (!password) return;
+    track('Feature: Protect');
     setIsProcessing(true);
     workerRef.current.postMessage({ action: 'protect', file: await activeFile.arrayBuffer(), password });
   };
 
   const handleWatermark = async () => {
     if (!watermarkText.trim()) return;
+    track('Feature: Watermark');
     setIsProcessing(true);
     workerRef.current.postMessage({ action: 'watermark', file: await activeFile.arrayBuffer(), watermarkText });
   };
 
   const handlePageNumbers = async () => {
+    track('Feature: Page Numbers');
     setIsProcessing(true);
     workerRef.current.postMessage({ action: 'pageNumbers', file: await activeFile.arrayBuffer() });
   };
@@ -383,6 +390,7 @@ function PdfStudio() {
 
   const handleSign = async () => {
     if (placedSignatures.length === 0) return;
+    track('Feature: Sign', { signatureCount: placedSignatures.length });
     setIsProcessing(true);
     const scaleFactor = 1 / 1.5;
     const translatedSignatures = placedSignatures.map(sig => ({
