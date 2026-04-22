@@ -47,7 +47,7 @@ const Success = () => {
         <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent ${isSuccess ? 'via-red-800' : 'via-zinc-600'} to-transparent opacity-50`} />
         <div className="flex justify-between mb-8 opacity-30 text-[10px] uppercase tracking-[0.2em]">
           <span>{isSuccess ? 'Auth_Success' : 'Auth_Failed'}</span>
-          <span>v1.1_Steel</span>
+          <span>v1.2</span>
         </div>
 
         <div className="text-center">
