@@ -41,10 +41,6 @@ function SortableThumbnail({ id, url, originalIndex }) {
 function App() {
   return (
     <>
-      <Routes>
-        <Route path="/:tabId" element={<PdfStudio />} />
-        <Route path="/" element={<PdfStudio />} />
-      </Routes>
       <PdfStudio />
       <Analytics />
     </>
