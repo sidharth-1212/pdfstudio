@@ -153,16 +153,13 @@ function PdfStudio() {
   );
 
   useEffect(() => {
-    // 1. If the URL is just '/', send them to 'reorder'
     if (!tabId) {
       navigate('/reorder', { replace: true });
       return;
     }
 
-    // 2. Sync activeTab state to the URL
     setActiveTab(tabId);
 
-    // 3. YOUR CLEANUP LOGIC: Fires automatically on URL change
     setMergeFiles([]);
     setActiveFile(null);
     setDocumentPages([]);
@@ -175,10 +172,9 @@ function PdfStudio() {
     setPlacedSignatures([]); 
     setActiveSignatureId(null);
 
-    // Scroll to top for a fresh view
     window.scrollTo(0, 0);
 
-  }, [tabId, navigate]); // Triggers every time the URL suffix changes
+  }, [tabId, navigate]);
 
   useEffect(() => {
     workerRef.current = new MyPdfWorker();
@@ -252,7 +248,6 @@ function PdfStudio() {
     }
   };
 
-  // Mobile-Optimized Coordinate Handler
   const getCoordinates = (e) => {
     if (!canvasRef.current) return { x: 0, y: 0 };
     const rect = canvasRef.current.getBoundingClientRect();
